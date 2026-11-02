@@ -36,12 +36,17 @@ button{font-family:inherit;cursor:pointer}
 .msg{font-size:13px;color:var(--ac);min-height:18px;margin:4px 0}
 .mu{color:var(--mu);font-size:12px}
 #stage{margin-bottom:8px}#gl{width:100%;aspect-ratio:1/1;display:block;border-radius:10px;background:var(--sf);touch-action:manipulation}.top .btn{padding:4px 8px;font-size:13px}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:50;padding:16px}
+.mb{background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:14px;padding:18px;width:100%;max-width:340px;text-align:center;animation:pop .35s}
+.mb .big{font-size:56px;animation:bn 1s infinite}.mb h2{margin:4px 0;font-size:22px}.mb .rw{margin:10px 0;line-height:1.8;font-size:15px}.mb .btn{display:block;width:100%;margin-top:8px}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}@keyframes bn{50%{transform:translateY(-8px)}}
 </style></head><body>
 <h1>⚔️ Legend Merge 8v8</h1>
 <div class="top" id="top"></div>
 <div class="tabs" id="tabs"></div>
 <div id="stage" style="display:none"><canvas id="gl"></canvas></div>
 <div id="main"></div>
+<div id="modal"></div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -151,12 +156,30 @@ function tick(){
  if(!pa||!ea||sim.t>150){
   clearInterval(timer);sim.done=true;sfx(pa&&!ea?'win':'lose');
   if(pa&&!ea){
-   const g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
-   if(sim.m!=null){const k=['a','w','h'][R(3)],q=1+R(2)+sim.m;S.it[k]+=q;msg+=` · ໄດ້ ${IT[k].i}${IT[k].n} ×${q}`}
-  }else{S.gold+=10;S.xp+=10;msg='💀 ແພ້... +10 💰 +10 XP ລອງຈັດທັບ ຫຼື ອັບເກຣດໃໝ່'}
+   const lv0=lvl(),g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;sim.res={w:1,g,xp:30,lv:lvl()>lv0?lvl():0,it:''};msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
+   if(sim.m!=null){const k=['a','w','h'][R(3)],q=1+R(2)+sim.m;S.it[k]+=q;sim.res.it=IT[k].i+' '+IT[k].n+' \u00d7'+q;msg+=` · ໄດ້ ${IT[k].i}${IT[k].n} ×${q}`}
+  }else{S.gold+=10;S.xp+=10;sim.res={w:0,g:10,xp:10,lv:0,it:''};msg='💀 ແພ້... +10 💰 +10 XP ລອງຈັດທັບ ຫຼື ອັບເກຣດໃໝ່'}
  }
  render();playFx();
+ if(sim.done)setTimeout(showRes,700);
 }
+function showRes(){
+ if(!sim||!sim.done||!sim.res)return;
+ const r=sim.res,m=sim.m,el=document.getElementById('modal'),last=m!=null&&m<LG.length-1,nx=last?LG[m+1]:null;
+ let h=`<div class="mb"><div class="big">${r.w?'\ud83c\udfc6':'\ud83d\udc80'}</div><h2>${r.w?'\u0e8a\u0eb0\u0e99\u0eb0!':'\u0ec1\u0e9e\u0ec9'}</h2><p class="mu">${m==null?'\u0eaa\u0eb9\u0ec9 bot Lv '+lvl():'League '+LG[m].n}</p><div class="rw">\ud83d\udcb0 +${r.g} &nbsp; \u2b50 +${r.xp} XP${r.it?'<br>'+r.it:''}${r.lv?'<br>\ud83c\udf89 \u0ec0\u0ea5\u0ec0\u0ea7\u0ea7\u0e82\u0eb6\u0ec9\u0e99\u0ec0\u0e9b\u0eb1\u0e99 Lv '+r.lv+'!':''}</div>`;
+ if(r.w&&nx)h+=`<p class="mu">\u0e94\u0ec8\u0eb2\u0e99\u0e95\u0ecd\u0ec8\u0ec4\u0e9b: ${nx.n} ${lvl()>=nx.req?'\ud83d\udd13':'\ud83d\udd12 \u0e95\u0ec9\u0ead\u0e87 Lv '+nx.req}</p>`;
+ const b=[];
+ if(m==null)b.push(['\u2694\ufe0f \u0eaa\u0eb9\u0ec9\u0ead\u0eb5\u0e81','again()']);
+ else{b.push(['\ud83d\udd01 \u0eab\u0ebc\u0eb4\u0ec9\u0e99\u0e94\u0ec8\u0eb2\u0e99\u0ec0\u0e81\u0ebb\u0ec8\u0eb2\u0ead\u0eb5\u0e81 ('+LG[m].n+')','again()']);
+  if(r.w&&nx&&lvl()>=nx.req)b.push(['\u27a1\ufe0f \u0e94\u0ec8\u0eb2\u0e99\u0e95\u0ecd\u0ec8\u0ec4\u0e9b ('+nx.n+')','nextS()']);
+  b.push(['\ud83c\udfc6 \u0ec0\u0ea5\u0eb7\u0ead\u0e81\u0e94\u0ec8\u0eb2\u0e99\u0ec3\u0edd\u0ec8','newStage()'])}
+ b.push(['\u0e9b\u0eb4\u0e94','closeRes()']);
+ el.innerHTML=h+b.map((x,i)=>`<button class="btn${i&&i<b.length-1?' g':''}${i==b.length-1?' g':''}" onclick="${x[1]}">${x[0]}</button>`).join('')+'</div>';el.style.display='flex';
+}
+function closeRes(){document.getElementById('modal').style.display='none'}
+function again(){closeRes();const m=sim.m;sim=null;start(m)}
+function nextS(){closeRes();const m=sim.m+1;sim=null;start(m)}
+function newStage(){closeRes();sim=null;tab='lg';render()}
 function pick(id){
  if(sim&&!sim.done)return;
  if(sim&&sim.done)sim=null;
