@@ -41,13 +41,13 @@ button{font-family:inherit;cursor:pointer}
 .mb .big{font-size:56px;animation:bn 1s infinite}.mb h2{margin:4px 0;font-size:22px}.mb .rw{margin:10px 0;line-height:1.8;font-size:15px}.mb .btn{display:block;width:100%;margin-top:8px}
 @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}@keyframes bn{50%{transform:translateY(-8px)}}
 </style></head><body>
-<h1>⚔️ Legend Merge 8v8 <small class="mu">v1.7</small></h1>
+<h1>⚔️ Legend Merge 8v8 <small class="mu">v1.8</small></h1>
 <div class="top" id="top"></div>
 <div class="tabs" id="tabs"></div>
 <div id="stage" style="display:none"><canvas id="gl"></canvas></div>
 <div id="main"></div>
 <div id="modal"></div>
-<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 1.7</div>
+<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 1.8</div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -60,6 +60,7 @@ const T={knight:{n:'ນັກຮົບ',i:'🗡️',hp:100,atk:14,r:1,m:1},arche
 const LG=[{n:'ບຣອນ',req:10,L:15},{n:'ເງິນ',req:20,L:30},{n:'ຄຳ',req:40,L:55},{n:'ແພລັດຕິນັມ',req:60,L:80},{n:'ຕຳນານ',req:80,L:110}];
 const IT={a:{n:'ເສດເກາະ',i:'🛡️',u:'ເກາະປ້ອງກັນ'},w:{n:'ເສດອາວຸດ',i:'⚔️',u:'ອາວຸດ'},h:{n:'ເສດຫົວໃຈ',i:'❤️',u:'ເລືອດ'}};
 const ORD=[3,4,2,5,1,6,0,7];
+const BI={a:'ແກ້ວເກາະ',w:'ແກ້ວອາວຸດ',h:'ແກ້ວຫົວໃຈ'};
 const SP={
 knight:['....KKKK..W.','...KMMMMK.W.','...KMKKMK.W.','...KMMMMK.W.','..KAAAAAAKW.','.SKAAAAAAKY.','.SKAAAAAAK..','..KAAAAAAK..','..KDDKKDDK..','..KBBK.KBBK.','.KKBBK.KBBKK','.KKKKK.KKKKK'],
 archer:['....KKKK....','...KGGGGK...','..BKGSSGK...','.B.KSSSSK...','B..KGGGGK...','B.KGGAAGGK..','B.SGGAAGGK..','.B.KGGGGK...','..KGGKKGGK..','..KBBK.KBBK.','.KKBBK.KBBKK','.KKKKK.KKKKK'],
@@ -69,14 +70,14 @@ const PAL={K:'#1b1b2f',S:'#f1c9a0',M:'#cfd6e0',D:'#7e8896',W:'#ffffff',Y:'#f6c44
 const TC=['#4a90e2','#38a169','#9f5de2','#e6a817','#e53e3e'];
 const SC={};
 function spr(t,tr,s){const k=t+tr+s;if(SC[k])return SC[k];const cv=document.createElement('canvas');cv.width=cv.height=12;const c=cv.getContext('2d');SP[t].forEach((row,y)=>{for(let x=0;x<12;x++){const ch=row[x];if(ch=='.')continue;c.fillStyle=ch=='A'?TC[tr-1]:PAL[ch];c.fillRect(s=='e'?11-x:x,y,1,1)}});return SC[k]=cv.toDataURL()}
-function load(){try{const s=JSON.parse(localStorage.getItem('lm8'));if(s){s.stage=s.stage||1;s.best=s.best||1;return s}}catch(e){}return{stage:1,best:1,gold:400,xp:0,nid:4,roster:[{id:1,type:'knight',tier:1},{id:2,type:'archer',tier:1},{id:3,type:'tank',tier:1}],place:{},up:{a:0,w:0,h:0},it:{a:0,w:0,h:0}}}
+function load(){try{const s=JSON.parse(localStorage.getItem('lm8'));if(s){s.stage=s.stage||1;s.best=s.best||1;s.big=s.big||{a:0,w:0,h:0};return s}}catch(e){}return{stage:1,best:1,big:{a:0,w:0,h:0},gold:400,xp:0,nid:4,roster:[{id:1,type:'knight',tier:1},{id:2,type:'archer',tier:1},{id:3,type:'tank',tier:1}],place:{},up:{a:0,w:0,h:0},it:{a:0,w:0,h:0}}}
 function save(){try{localStorage.setItem('lm8',JSON.stringify(S))}catch(e){}}
 let S=load(),tab='fight',sel=null,sim=null,timer=null,msg='';
 const lvl=()=>Math.floor(S.xp/60);
 const R=n=>Math.floor(Math.random()*n);
 const uid=id=>S.roster.find(r=>r.id==id);
 function render(){
- document.getElementById('top').innerHTML=`<span>⭐ ຜູ້ຫຼິ້ນ Lv ${lvl()} (${S.xp%60}/60)</span><span>🏁 ດ່ານ ${S.stage}</span><span>💰 ${S.gold}</span><span>${IT.a.i}${S.it.a} ${IT.w.i}${S.it.w} ${IT.h.i}${S.it.h}</span><button class="btn g" onclick="togSnd()">${snd.on?'🔊':'🔇'}</button><button class="btn g" onclick="resetGame()">🔄 Reset</button><span class="mu">💾 auto-save</span>`;
+ document.getElementById('top').innerHTML=`<span>⭐ ຜູ້ຫຼິ້ນ Lv ${lvl()} (${S.xp%60}/60)</span><span>🏁 ດ່ານ ${S.stage}</span><span>💰 ${S.gold}</span><span>${IT.a.i}${S.it.a}·${S.big.a}✨ ${IT.w.i}${S.it.w}·${S.big.w}✨ ${IT.h.i}${S.it.h}·${S.big.h}✨</span><button class="btn g" onclick="togSnd()">${snd.on?'🔊':'🔇'}</button><button class="btn g" onclick="resetGame()">🔄 Reset</button><span class="mu">💾 auto-save</span>`;
  const tn={fight:'ຕໍ່ສູ້',roster:'ທັບ',shop:'ຮ້ານ',up:'ອັບເກຣດ',lg:'League'};
  document.getElementById('tabs').innerHTML=Object.keys(tn).map(k=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';render()">${tn[k]}</button>`).join('');
  document.getElementById('main').innerHTML=({fight:vFight,roster:vRoster,shop:vShop,up:vUp,lg:vLg})[tab]();
@@ -159,9 +160,9 @@ function tick(){
  if(!pa||!ea||sim.t>150){
   clearInterval(timer);sim.done=true;sfx(pa&&!ea?'win':'lose');
   if(pa&&!ea){
-   const lv0=lvl(),g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;sim.res={w:1,g,xp:30,lv:lvl()>lv0?lvl():0,it:''};if(sim.m==null){S.best=Math.max(S.best,S.stage+1);S.stage=Math.min(S.stage+1,S.best)}msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
-   if(sim.m!=null){const k=['a','w','h'][R(3)],q=1+R(2)+sim.m;S.it[k]+=q;sim.res.it=IT[k].i+' '+IT[k].n+' \u00d7'+q;msg+=` · ໄດ້ ${IT[k].i}${IT[k].n} ×${q}`}
-  if(sim.boss){const k=['a','w','h'][R(3)],q=2+Math.floor(sim.L/10);S.it[k]+=q;S.gold+=g*2;sim.res.g=g*3;sim.res.it=IT[k].i+' '+IT[k].n+' \u00d7'+q+' (👑 ບອສ)';msg+=' · 👑 ຊະນະບອສ!'}
+   const lv0=lvl(),g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;sim.res={w:1,g,xp:30,lv:lvl()>lv0?lvl():0,it:''};if(sim.m==null){S.best=Math.max(S.best,S.stage+1);S.stage=Math.min(S.stage+1,S.best);const k2=['a','w','h'][R(3)],q2=1+R(2)+Math.floor(sim.L/20);S.it[k2]+=q2;sim.res.it=IT[k2].i+' '+IT[k2].n+' \u00d7'+q2}msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
+   if(sim.m!=null){const k=['a','w','h'][R(3)],q=1+R(2)+Math.floor(sim.m/2);S.big[k]+=q;sim.res.it=IT[k].i+'✨ '+BI[k]+' \u00d7'+q+' (ໃຫຍ່)';msg+=` · ໄດ້ ${IT[k].i}✨${BI[k]} ×${q}`}
+  if(sim.boss){const k=['a','w','h'][R(3)],q=2+Math.floor(sim.L/10);S.it[k]+=q;S.gold+=g*2;sim.res.g=g*3;sim.res.it+='<br>'+IT[k].i+' '+IT[k].n+' \u00d7'+q+' (👑 ບອສ)';msg+=' · 👑 ຊະນະບອສ!'}
   }else{S.gold+=10;S.xp+=10;sim.res={w:0,g:10,xp:10,lv:0,it:''};msg='💀 ແພ້... +10 💰 +10 XP ລອງຈັດທັບ ຫຼື ອັບເກຣດໃໝ່'}
  }
  render();playFx();
@@ -229,12 +230,12 @@ function vShop(){
 }
 function buy(k){if(S.gold<120)return;S.gold-=120;S.roster.push({id:S.nid++,type:k,tier:1});render()}
 function vUp(){
- return `<div class="card"><b>ອັບເກຣດດ້ວຍ rare item</b><div class="mu">ແຕ່ລະເລເວວ +8% (ເກາະ = ຫຼຸດດາເມດ)</div>`+['a','w','h'].map(k=>{const c=3+2*S.up[k];
-  return `<div class="row"><span>${IT[k].i} ${IT[k].u} Lv ${S.up[k]}<br><span class="mu">ຕ້ອງ ${c} ${IT[k].n} (ມີ ${S.it[k]})</span></span><button class="btn" ${S.it[k]<c?'disabled':''} onclick="upg('${k}')">ອັບເກຣດ</button></div>`}).join('')+`</div>`;
+ return `<div class="card"><b>ອັບເກຣດ</b><div class="mu">ແລະເລເວວ +8% (ເກາະ = ຫຼຸດດາເມດ) · ແກ້ວໃຫຍ່ 1 ອັນ = ເສດນ້ອຍ 5 ອັນ</div>`+['a','w','h'].map(k=>{const c=3+2*S.up[k],have=S.it[k]+5*S.big[k];
+  return `<div class="row"><span>${IT[k].i} ${IT[k].u} Lv ${S.up[k]}<br><span class="mu">ຕ້ອງ ${c} ເສດ · ມີ ${IT[k].n} ${S.it[k]} + ${BI[k]} ${S.big[k]} (ລວມ ${have})</span></span><button class="btn" ${have<c?'disabled':''} onclick="upg('${k}')">ອັບເກຣດ</button></div>`}).join('')+`</div>`;
 }
-function upg(k){const c=3+2*S.up[k];if(S.it[k]<c)return;S.it[k]-=c;S.up[k]++;render()}
+function upg(k){const c=3+2*S.up[k];if(S.it[k]+5*S.big[k]<c)return;const u=Math.min(S.it[k],c);S.it[k]-=u;const r=c-u;if(r>0){const nb=Math.ceil(r/5);S.big[k]-=nb;S.it[k]+=nb*5-r}S.up[k]++;render()}
 function vLg(){
- return `<div class="card"><b>Legend League</b><div class="mu">ຊະນະເພື່ອໄດ້ rare item ແລະ ເງິນຫຼາຍ · ຈັດທັບໃນໜ້າ "ຕໍ່ສູ້" ກ່ອນ</div>`+LG.map((l,i)=>{const ok=lvl()>=l.req;
+ return `<div class="card"><b>Legend League</b><div class="mu">ຊະນະເພື່ອໄດ້ແກ້ວໃຫຍ່ (ມີຄ່າ ×5) ແລະ ເງິນຫຼາຍ · ຈັດທັບໃນໜ້າ "ຕໍ່ສູ້" ກ່ອນ</div>`+LG.map((l,i)=>{const ok=lvl()>=l.req;
   return `<div class="row"><span>🏆 ${l.n}<br><span class="mu">ຕ້ອງ Lv ${l.req} · ຄວາມຍາກ ${l.L}</span></span><button class="btn" ${ok&&!(sim&&!sim.done)?'':'disabled'} onclick="start(${i})">${ok?'ເຂົ້າສູ້':'🔒'}</button></div>`}).join('')+`</div>`;
 }
 // ===== Sound =====
