@@ -40,14 +40,18 @@ button{font-family:inherit;cursor:pointer}
 .mb{background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:14px;padding:18px;width:100%;max-width:340px;text-align:center;animation:pop .35s}
 .mb .big{font-size:56px;animation:bn 1s infinite}.mb h2{margin:4px 0;font-size:22px}.mb .rw{margin:10px 0;line-height:1.8;font-size:15px}.mb .btn{display:block;width:100%;margin-top:8px}
 @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}@keyframes bn{50%{transform:translateY(-8px)}}
+.tabs button{font-size:12px;padding:8px 0}
+.sg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.stb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;font-size:16px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:8px}
+.stb small{font-size:10px;color:var(--mu)}.stb.cl{border-color:#2f855a}.stb.on{background:var(--bt);color:var(--bt2);border-color:var(--bt)}.stb.on small{color:var(--bt2)}.stb:disabled{opacity:.4}
 </style></head><body>
-<h1>⚔️ Legend Merge 8v8 <small class="mu">v1.8</small></h1>
+<h1>⚔️ Legend Merge 8v8 <small class="mu">v1.9</small></h1>
 <div class="top" id="top"></div>
 <div class="tabs" id="tabs"></div>
 <div id="stage" style="display:none"><canvas id="gl"></canvas></div>
 <div id="main"></div>
 <div id="modal"></div>
-<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 1.8</div>
+<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 1.9</div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -77,10 +81,10 @@ const lvl=()=>Math.floor(S.xp/60);
 const R=n=>Math.floor(Math.random()*n);
 const uid=id=>S.roster.find(r=>r.id==id);
 function render(){
- document.getElementById('top').innerHTML=`<span>⭐ ຜູ້ຫຼິ້ນ Lv ${lvl()} (${S.xp%60}/60)</span><span>🏁 ດ່ານ ${S.stage}</span><span>💰 ${S.gold}</span><span>${IT.a.i}${S.it.a}·${S.big.a}✨ ${IT.w.i}${S.it.w}·${S.big.w}✨ ${IT.h.i}${S.it.h}·${S.big.h}✨</span><button class="btn g" onclick="togSnd()">${snd.on?'🔊':'🔇'}</button><button class="btn g" onclick="resetGame()">🔄 Reset</button><span class="mu">💾 auto-save</span>`;
- const tn={fight:'ຕໍ່ສູ້',roster:'ທັບ',shop:'ຮ້ານ',up:'ອັບເກຣດ',lg:'League'};
+ document.getElementById('top').innerHTML=`<span>⭐ ຜູ້ຫຼິ້ນ Lv ${lvl()} (${S.xp%60}/60)</span><span>🏁 ດ່ານ ${SL(S.stage)}</span><span>💰 ${S.gold}</span><span>${IT.a.i}${S.it.a}·${S.big.a}✨ ${IT.w.i}${S.it.w}·${S.big.w}✨ ${IT.h.i}${S.it.h}·${S.big.h}✨</span><button class="btn g" onclick="togSnd()">${snd.on?'🔊':'🔇'}</button><button class="btn g" onclick="resetGame()">🔄 Reset</button><span class="mu">💾 auto-save</span>`;
+ const tn={fight:'ຕໍ່ສູ້',map:'ດ່ານ',roster:'ທັບ',shop:'ຮ້ານ',up:'ອັບເກຣດ',lg:'League'};
  document.getElementById('tabs').innerHTML=Object.keys(tn).map(k=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';render()">${tn[k]}</button>`).join('');
- document.getElementById('main').innerHTML=({fight:vFight,roster:vRoster,shop:vShop,up:vUp,lg:vLg})[tab]();
+ document.getElementById('main').innerHTML=({map:vMap,fight:vFight,roster:vRoster,shop:vShop,up:vUp,lg:vLg})[tab]();
  save();
  stageUpdate();
 }
@@ -103,9 +107,9 @@ function vFight(){
  return `${board()}<div class="msg">${msg}${sim&&sim.done?' · ເລືອກຕົວລະຄອນດ້ານລຸ່ມ ແລ້ວສູ້ຕໍ່':''}</div>
  <div class="card"><div class="mu">ຕົວລະຄອນທັງໝົດ: ກົດເລືອກ ແລ້ວກົດຊ່ອງສີຂຽວເພື່ອວາງ · ວາງແລ້ວ ${placed.length}/8 · ກົດຕົວທີ່ມີ ✓ ເພື່ອເອົາອອກ</div>
  ${S.roster.map(r=>{const on=placed.includes(r.id);return `<span class="chip ${sel==r.id?'sel':''}" style="${on?'opacity:.5':''}" onclick="pick(${r.id})"><img class="sp2" src="${spr(r.type,r.tier,'p')}">★${r.tier}${on?' ✓':''}</span>`}).join('')}</div>
- <div class="row"><span>ດ່ານ: <button class="btn g" ${busy||S.stage<=1?'disabled':''} onclick="stg(-1)">◀</button> <b>${S.stage}</b> / ${S.best} <button class="btn g" ${busy||S.stage>=S.best?'disabled':''} onclick="stg(1)">▶</button></span></div>
+ <div class="row"><span>🏁 ດ່ານ <b>${SL(S.stage)}</b> <span class="mu">(ສູງສຸດ ${SL(S.best)})</span></span><button class="btn g" ${busy?'disabled':''} onclick="tab='map';render()">📋 ເລືອກດ່ານ</button></div>
  <div class="row"><button class="btn g" ${busy?'disabled':''} onclick="auto()">ຈັດອັດຕະໂນມັດ</button><button class="btn g" ${busy?'disabled':''} onclick="clr()">ລ້າງ</button>
- <button class="btn" ${busy?'disabled':''} onclick="start(null)">⚔️ ສູ້ ${S.stage%10==0?'👑 ບອສ':'bot'} ດ່ານ ${S.stage}</button></div>`;
+ <button class="btn" ${busy?'disabled':''} onclick="start(null)">⚔️ ສູ້ ${S.stage%10==0?'👑 ບອສ':'bot'} ດ່ານ ${SL(S.stage)}</button></div>`;
 }
 function clickCell(i){
  if(sim&&!sim.done)return;
@@ -171,10 +175,10 @@ function tick(){
 function showRes(){
  if(!sim||!sim.done||!sim.res)return;
  const r=sim.res,m=sim.m,el=document.getElementById('modal'),last=m!=null&&m<LG.length-1,nx=last?LG[m+1]:null;
- let h=`<div class="mb"><div class="big">${r.w?'\ud83c\udfc6':'\ud83d\udc80'}</div><h2>${r.w?'\u0e8a\u0eb0\u0e99\u0eb0!':'\u0ec1\u0e9e\u0ec9'}</h2><p class="mu">${m==null?((sim.boss?'👑 ບອສ ດ່ານ ':'ດ່ານ ')+sim.st):'League '+LG[m].n}</p><div class="rw">\ud83d\udcb0 +${r.g} &nbsp; \u2b50 +${r.xp} XP${r.it?'<br>'+r.it:''}${r.lv?'<br>\ud83c\udf89 \u0ec0\u0ea5\u0ec0\u0ea7\u0ea7\u0e82\u0eb6\u0ec9\u0e99\u0ec0\u0e9b\u0eb1\u0e99 Lv '+r.lv+'!':''}</div>`;
+ let h=`<div class="mb"><div class="big">${r.w?'\ud83c\udfc6':'\ud83d\udc80'}</div><h2>${r.w?'\u0e8a\u0eb0\u0e99\u0eb0!':'\u0ec1\u0e9e\u0ec9'}</h2><p class="mu">${m==null?((sim.boss?'👑 ບອສ ດ່ານ ':'ດ່ານ ')+SL(sim.st)):'League '+LG[m].n}</p><div class="rw">\ud83d\udcb0 +${r.g} &nbsp; \u2b50 +${r.xp} XP${r.it?'<br>'+r.it:''}${r.lv?'<br>\ud83c\udf89 \u0ec0\u0ea5\u0ec0\u0ea7\u0ea7\u0e82\u0eb6\u0ec9\u0e99\u0ec0\u0e9b\u0eb1\u0e99 Lv '+r.lv+'!':''}</div>`;
  if(r.w&&nx)h+=`<p class="mu">\u0e94\u0ec8\u0eb2\u0e99\u0e95\u0ecd\u0ec8\u0ec4\u0e9b: ${nx.n} ${lvl()>=nx.req?'\ud83d\udd13':'\ud83d\udd12 \u0e95\u0ec9\u0ead\u0e87 Lv '+nx.req}</p>`;
  const b=[];
- if(m==null){if(r.w){b.push(['➡️ ສູ້ດ່ານ '+S.stage,'again()'],['🔁 ຫຼິ້ນດ່ານ '+sim.st+' ອີກ','repS()'])}else b.push(['🔁 ລອງດ່ານ '+sim.st+' ອີກ','again()'])}
+ if(m==null){if(r.w){b.push(['➡️ ສູ້ດ່ານ '+SL(S.stage),'again()'],['🔁 ຫຼິ້ນດ່ານ '+SL(sim.st)+' ອີກ','repS()'])}else b.push(['🔁 ລອງດ່ານ '+SL(sim.st)+' ອີກ','again()'])}
  else{b.push(['\ud83d\udd01 \u0eab\u0ebc\u0eb4\u0ec9\u0e99\u0e94\u0ec8\u0eb2\u0e99\u0ec0\u0e81\u0ebb\u0ec8\u0eb2\u0ead\u0eb5\u0e81 ('+LG[m].n+')','again()']);
   if(r.w&&nx&&lvl()>=nx.req)b.push(['\u27a1\ufe0f \u0e94\u0ec8\u0eb2\u0e99\u0e95\u0ecd\u0ec8\u0ec4\u0e9b ('+nx.n+')','nextS()']);
   b.push(['\ud83c\udfc6 \u0ec0\u0ea5\u0eb7\u0ead\u0e81\u0e94\u0ec8\u0eb2\u0e99\u0ec3\u0edd\u0ec8','newStage()'])}
@@ -234,6 +238,20 @@ function vUp(){
   return `<div class="row"><span>${IT[k].i} ${IT[k].u} Lv ${S.up[k]}<br><span class="mu">ຕ້ອງ ${c} ເສດ · ມີ ${IT[k].n} ${S.it[k]} + ${BI[k]} ${S.big[k]} (ລວມ ${have})</span></span><button class="btn" ${have<c?'disabled':''} onclick="upg('${k}')">ອັບເກຣດ</button></div>`}).join('')+`</div>`;
 }
 function upg(k){const c=3+2*S.up[k];if(S.it[k]+5*S.big[k]<c)return;const u=Math.min(S.it[k],c);S.it[k]-=u;const r=c-u;if(r>0){const nb=Math.ceil(r/5);S.big[k]-=nb;S.it[k]+=nb*5-r}S.up[k]++;render()}
+const SL=n=>(Math.floor((n-1)/10)+1)+'-'+((n-1)%10+1);
+const CHN=['ປ່າ','ຖ້ຳ','ທະເລຊາຍ','ພູໄຟ','ນ້ຳແຂງ','ເມືອງຮ້າງ','ເທິງເມກ','ປາສາດມືດ'];
+let mapCh=0;
+function vMap(){
+ const cur=Math.floor((S.best-1)/10)+1,sel=mapCh||Math.floor((S.stage-1)/10)+1;
+ let h='<div class="card"><b>📋 ເລືອກດ່ານ</b><div class="mu">ແຕະບົດເພື່ອເປີດ ແລ້ວແຕະດ່ານຍ່ອຍ · ດ່ານທີ 10 ຂອງແຕ່ລະບົດແມ່ນບອສ 👑</div></div>';
+ for(let c=1;c<=cur+1;c++){
+  const a=(c-1)*10+1,open=c<=cur,done=Math.max(0,Math.min(10,S.best-a)),nm=CHN[(c-1)%8]+(c>8?' '+Math.ceil(c/8):'');
+  h+=`<div class="card"><div class="row" style="cursor:pointer" ${open?`onclick="mapCh=${c};render()"`:''}><b>${open?'📖':'🔒'} ບົດ ${c} · ${nm}</b><span class="mu">${open?'ຜ່ານ '+done+'/10 '+(sel==c?'▲':'▼'):'ຜ່ານບົດກ່ອນໜ້າກ່ອນ'}</span></div>`;
+  if(open&&sel==c){h+='<div class="sg">';for(let i=1;i<=10;i++){const st=a+i-1,ok=st<=S.best,cl=st<S.best;h+=`<button class="stb${st==S.stage?' on':''}${cl?' cl':''}" ${ok?'':'disabled'} onclick="pickSt(${st})">${ok?(i==10?'👑':i):'🔒'}<small>${c}-${i}</small></button>`}h+='</div>'}
+  h+='</div>'}
+ return h;
+}
+function pickSt(n){S.stage=n;mapCh=0;tab='fight';msg='';render()}
 function vLg(){
  return `<div class="card"><b>Legend League</b><div class="mu">ຊະນະເພື່ອໄດ້ແກ້ວໃຫຍ່ (ມີຄ່າ ×5) ແລະ ເງິນຫຼາຍ · ຈັດທັບໃນໜ້າ "ຕໍ່ສູ້" ກ່ອນ</div>`+LG.map((l,i)=>{const ok=lvl()>=l.req;
   return `<div class="row"><span>🏆 ${l.n}<br><span class="mu">ຕ້ອງ Lv ${l.req} · ຄວາມຍາກ ${l.L}</span></span><button class="btn" ${ok&&!(sim&&!sim.done)?'':'disabled'} onclick="start(${i})">${ok?'ເຂົ້າສູ້':'🔒'}</button></div>`}).join('')+`</div>`;
