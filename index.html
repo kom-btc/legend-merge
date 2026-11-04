@@ -52,13 +52,13 @@ button{font-family:inherit;cursor:pointer}
 .pkc.me{opacity:1;border-color:var(--bt);background:rgba(245,158,11,.15)}.pkc small{display:block;color:var(--bt);font-size:11px}
 @keyframes flip{from{transform:rotateY(90deg);opacity:0}}
 </style></head><body>
-<h1>⚔️ Legend Merge 8v8 <small class="mu">v2.2</small></h1>
+<h1>⚔️ Legend Merge 8v8 <small class="mu">v2.3</small></h1>
 <div class="top" id="top"></div>
 <div class="tabs" id="tabs"></div>
 <div id="stage" style="display:none"><canvas id="gl"></canvas></div>
 <div id="main"></div>
 <div id="modal"></div>
-<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 2.2</div>
+<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 2.3</div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -114,7 +114,7 @@ function vFight(){
  return `${board()}<div class="msg">${msg}${sim&&sim.done?' · ເລືອກຕົວລະຄອນດ້ານລຸ່ມ ແລ້ວສູ້ຕໍ່':''}</div>
  <div class="card"><div class="mu">ຕົວລະຄອນທັງໝົດ: ກົດເລືອກ ແລ້ວກົດຊ່ອງສີຂຽວເພື່ອວາງ · ວາງແລ້ວ ${placed.length}/8 · ກົດຕົວທີ່ມີ ✓ ເພື່ອເອົາອອກ</div>
  ${S.roster.map(r=>{const on=placed.includes(r.id);return `<span class="chip ${sel==r.id?'sel':''}" style="${on?'opacity:.5':''}" onclick="pick(${r.id})"><img class="sp2" src="${spr(r.type,r.tier,'p')}">★${r.tier}${on?' ✓':''}</span>`}).join('')}</div>
- <div class="row"><span>🏁 ດ່ານ <b>${SL(S.stage)}</b> <span class="mu">(ສູງສຸດ ${SL(bestU())})</span></span><button class="btn g" ${busy?'disabled':''} onclick="tab='map';render()">📋 ເລືອກດ່ານ</button></div>
+ <div class="row"><span>🏁 ດ່ານ <b>${SL(S.stage)}</b> <span class="mu">${CHN[Math.floor((S.stage-1)/10)%8]}</span> <span class="mu">(ສູງສຸດ ${SL(bestU())})</span></span><button class="btn g" ${busy?'disabled':''} onclick="tab='map';render()">📋 ເລືອກດ່ານ</button></div>
  <div class="row"><button class="btn g" ${busy?'disabled':''} onclick="auto()">ຈັດອັດຕະໂນມັດ</button><button class="btn g" ${busy?'disabled':''} onclick="clr()">ລ້າງ</button>
  <button class="btn" ${busy?'disabled':''} onclick="start(null)">⚔️ ສູ້ ${S.stage%10==0?'👑 ບອສ':'bot'} ດ່ານ ${SL(S.stage)}</button></div>`;
 }
@@ -256,7 +256,44 @@ function vUp(){
 }
 function upg(k){const c=3+2*S.up[k];if(S.it[k]+5*S.big[k]<c)return;const u=Math.min(S.it[k],c);S.it[k]-=u;const r=c-u;if(r>0){const nb=Math.ceil(r/5);S.big[k]-=nb;S.it[k]+=nb*5-r}S.up[k]++;render()}
 const SL=n=>(Math.floor((n-1)/10)+1)+'-'+((n-1)%10+1);
-const CHN=['ປ່າ','ຖ້ຳ','ທະເລຊາຍ','ພູໄຟ','ນ້ຳແຂງ','ເມືອງຮ້າງ','ເທິງເມກ','ປາສາດມືດ'];
+const TH=[
+ {n:'ປ່າ',sky:['#8fd3ff','#e6f7d0'],gr:0x4f7f3a,pa:[0x7fb069,0x6aa05a],ea:[0xb98b5a,0xa97b4a],pr:['tree','tree','rock']},
+ {n:'ທະເລ',sky:['#6ec6ff','#d9f2ff'],gr:0x2e86c1,pa:[0x5dade2,0x4d9ed2],ea:[0x7fb3a8,0x6fa398],pr:['palm','wave','wave']},
+ {n:'ທະເລຊາຍ',sky:['#ffd88a','#fff1c9'],gr:0xd9b46a,pa:[0xe8c98a,0xdcbb78],ea:[0xc98a5a,0xb97a4a],pr:['cactus','rock','cactus']},
+ {n:'ພູເຂົາ',sky:['#9bb7d4','#e8eef5'],gr:0x7d8a8f,pa:[0x95a5a6,0x859596],ea:[0x8a7f80,0x7a6f70],pr:['mount','rock','mount']},
+ {n:'ພູໄຟ',sky:['#4a1a12','#d9531e'],gr:0x2a1612,pa:[0x6b3d34,0x5b2d24],ea:[0x8a2c1c,0x7a1c0c],pr:['lava','rock','lava']},
+ {n:'ນ້ຳແຂງ',sky:['#b9e6ff','#f4fbff'],gr:0xcfe9f5,pa:[0xdff3fb,0xcbe8f4],ea:[0xb7d3e6,0xa5c3d8],pr:['crystal','mount','crystal']},
+ {n:'ເທິງເມກ',sky:['#5fa8f5','#d6ecff'],gr:0xeaf4ff,pa:[0xf5fbff,0xe3f0fb],ea:[0xd6cde8,0xc6bddc],pr:['cloud','cloud','crystal']},
+ {n:'ປາສາດມືດ',sky:['#1b1030','#4a2a6a'],gr:0x1c1626,pa:[0x4a4560,0x3d384f],ea:[0x6b2e4a,0x5a2040],pr:['tower','rock','tower']}];
+const THL={n:'ເວທີຕຳນານ',sky:['#2b1a05','#8a6a1a'],gr:0x2a2010,pa:[0xc9a24a,0xb8923a],ea:[0x8a3b2e,0x7a2b1e],pr:['tower','crystal','tower']};
+const CHN=TH.map(t=>t.n);
+const PROP={
+ tree:(b,x,z,r)=>{const h=.8+r()*.6;b(.3,h,.3,0x6b4423,x,0,z);b(1.1,.9,1.1,0x2f7d32,x,h,z);b(.7,.7,.7,0x3d9a40,x,h+.9,z)},
+ palm:(b,x,z,r)=>{const h=1+r()*.6;b(.25,h,.25,0x8a6a3a,x,0,z);b(1.2,.15,.3,0x2f9e44,x,h,z);b(.3,.15,1.2,0x2f9e44,x,h+.15,z)},
+ cactus:(b,x,z,r)=>{const h=.9+r()*.8;b(.35,h,.35,0x2f8f4e,x,0,z);b(.5,.25,.25,0x2f8f4e,x+.3,h*.5,z);b(.25,.5,.25,0x2f8f4e,x+.45,h*.5,z)},
+ rock:(b,x,z,r)=>{const q=.5+r()*.8;b(q,q*.7,q,0x7f8c8d,x,0,z);b(q*.6,q*.5,q*.6,0x95a5a6,x+.1,q*.7,z)},
+ mount:(b,x,z,r)=>{const q=1.4+r()*1.4;b(q*1.6,q*.6,q*1.6,0x7b8794,x,0,z);b(q,q*.7,q,0x8d99a6,x,q*.6,z);b(q*.5,q*.5,q*.5,0xffffff,x,q*1.3,z)},
+ wave:(b,x,z,r)=>{b(1.6+r(),.12,.5,0xcdeeff,x,0,z);b(1+r(),.12,.4,0xffffff,x+.3,.12,z)},
+ lava:(b,x,z,r)=>{const q=.8+r()*.8;b(q*1.5,.12,q*1.5,0xff5a1f,x,0,z,1);b(q*.8,.5,q*.8,0x3b2a26,x,.12,z);b(.4,.3,.4,0xff8c1a,x,.62,z,1)},
+ crystal:(b,x,z,r)=>{const h=.9+r()*1.2;b(.5,h,.5,0x7fd8ff,x,0,z,1);b(.3,h*.6,.3,0xbfeaff,x+.3,0,z+.1,1)},
+ cloud:(b,x,z,r)=>{b(1.6,.5,.9,0xffffff,x,.4+r()*.6,z);b(1,.5,.7,0xf1f7ff,x+.5,.8+r()*.4,z)},
+ tower:(b,x,z,r)=>{const h=1.6+r()*1.6;b(.8,h,.8,0x3a3350,x,0,z);b(1,.25,1,0x2a2440,x,h,z);b(.25,.25,.25,0xb36bff,x,h+.25,z,1)}
+};
+function applyTheme(th,key){
+ if(!GL||ENV.k===key)return;ENV.k=key;
+ const cv=document.createElement('canvas');cv.width=2;cv.height=256;const g=cv.getContext('2d'),gr=g.createLinearGradient(0,0,0,256);
+ gr.addColorStop(0,th.sky[0]);gr.addColorStop(1,th.sky[1]);g.fillStyle=gr;g.fillRect(0,0,2,256);
+ if(GL.sc.background&&GL.sc.background.dispose)GL.sc.background.dispose();
+ GL.sc.background=new THREE.CanvasTexture(cv);
+ TILES.forEach(m=>{const x=m.userData.x,y=m.userData.y,o=(x+y)%2;m.material.color.setHex(y>=4?th.pa[o]:th.ea[o])});
+ if(ENV.g){GL.sc.remove(ENV.g);ENV.g.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
+ const G=new THREE.Group(),mat=(c,e)=>e?new THREE.MeshBasicMaterial({color:c}):new THREE.MeshLambertMaterial({color:c});
+ const bx=(w,h,d,c,x,y,z,e)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c,e));m.position.set(x,y+h/2,z);G.add(m);return m};
+ bx(40,.2,40,th.gr,0,-.4,0);
+ let seed=(key*977+13)%2147483647;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+ for(let i=0;i<24;i++){const k=i%3;let x,z;if(k==0){x=-9+rnd()*18;z=-5.8-rnd()*4.5}else if(k==1){x=-6-rnd()*3.5;z=-5+rnd()*9}else{x=6+rnd()*3.5;z=-5+rnd()*9}PROP[th.pr[i%th.pr.length]](bx,x,z,rnd)}
+ GL.sc.add(G);ENV.g=G;
+}
 let mapCh=0;
 const st3=c=>{let n=0;for(let i=1;i<=10;i++)if((S.stars[(c-1)*10+i]||0)>=3)n++;return n};
 const chOpen=c=>c<=1||st3(c-1)>=10;
@@ -321,7 +358,7 @@ function build3(t,c0){
  if(t=='tank'){legs('#5a3b1e');B.push([0,.4,0,.95,.7,.55,c0]);arms('#7e8896');B.push([0,1.1,0,.55,.5,.55,SK],[0,1.4,0,.62,.26,.62,'#7e8896']);eyes();B.push([-.78,.3,.25,.14,.95,.65,'#7e8896'],[-.78,.65,.3,.16,.25,.25,GOLD])}
  return B;
 }
-let GL=null;const UM=new Map();
+let GL=null;const UM=new Map(),TILES=[],ENV={g:null,k:null};
 function initGL(){
  try{
   const cv=document.getElementById('gl'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
@@ -330,7 +367,7 @@ function initGL(){
   cam.position.set(0,9.5,8.5);cam.lookAt(0,0,.2);
   sc.add(new THREE.AmbientLight(0xffffff,.8));
   const dl=new THREE.DirectionalLight(0xffffff,.55);dl.position.set(3,8,5);sc.add(dl);
-  for(let y=0;y<8;y++)for(let x=0;x<8;x++){const o=(x+y)%2;const m=new THREE.Mesh(new THREE.BoxGeometry(.96,.1,.96),new THREE.MeshLambertMaterial({color:y>=4?(o?0x6f9a62:0x7fae70):(o?0xb06a62:0xc47b72)}));m.position.set(3.5-y,-.05,x-3.5);sc.add(m)}
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++){const o=(x+y)%2;const m=new THREE.Mesh(new THREE.BoxGeometry(.96,.1,.96),new THREE.MeshLambertMaterial({color:y>=4?(o?0x6f9a62:0x7fae70):(o?0xb06a62:0xc47b72)}));m.position.set(3.5-y,-.05,x-3.5);m.userData={x:x,y:y};sc.add(m);TILES.push(m)}
   GL={R,sc,cam,cv,fx:[],last:performance.now(),w:0,ray:new THREE.Raycaster()};
   cv.addEventListener('click',e=>{
    const r=cv.getBoundingClientRect();
@@ -355,6 +392,7 @@ function mkUnit(type,tier,side,boss){
 function stageUpdate(){
  const st=document.getElementById('stage');st.style.display=tab=='fight'?'block':'none';
  if(!GL||tab!='fight')return;
+ {const ch=Math.floor(((sim?sim.st:S.stage)-1)/10)+1;if(sim&&sim.m!=null)applyTheme(THL,100+sim.m);else applyTheme(TH[(ch-1)%8],ch)}
  const w=st.clientWidth;if(w&&GL.w!=w){GL.R.setSize(w,w,false);GL.w=w}
  const want=new Map();
  if(sim){sim.u.forEach(u=>{if(u.hp>0)want.set(u,{type:u.type,tier:u.tier,side:u.side,x:u.x,y:u.y,f:u.hp/u.max,boss:u.boss})})}
