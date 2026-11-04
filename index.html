@@ -45,14 +45,20 @@ button{font-family:inherit;cursor:pointer}
 .stb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;font-size:16px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:8px}
 .stb small{font-size:10px;color:var(--mu)}.stb.cl{border-color:#2f855a}.stb.on{background:var(--bt);color:var(--bt2);border-color:var(--bt)}.stb.on small{color:var(--bt2)}.stb:disabled{opacity:.4}
 .st3{font-size:34px;color:#f6c445;letter-spacing:4px;margin:2px 0}
+.pk{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+.pkb{font-size:34px;padding:16px 0;border:2px dashed var(--bd);background:var(--sf);color:var(--tx);border-radius:10px;cursor:pointer;animation:bn 1.4s infinite}
+.pkb:nth-child(2){animation-delay:.2s}.pkb:nth-child(3){animation-delay:.4s}.pkb:nth-child(4){animation-delay:.6s}
+.pkc{border:1px solid var(--bd);border-radius:10px;padding:12px 4px;font-size:14px;line-height:1.5;opacity:.55;animation:flip .5s both}
+.pkc.me{opacity:1;border-color:var(--bt);background:rgba(245,158,11,.15)}.pkc small{display:block;color:var(--bt);font-size:11px}
+@keyframes flip{from{transform:rotateY(90deg);opacity:0}}
 </style></head><body>
-<h1>⚔️ Legend Merge 8v8 <small class="mu">v2.1</small></h1>
+<h1>⚔️ Legend Merge 8v8 <small class="mu">v2.2</small></h1>
 <div class="top" id="top"></div>
 <div class="tabs" id="tabs"></div>
 <div id="stage" style="display:none"><canvas id="gl"></canvas></div>
 <div id="main"></div>
 <div id="modal"></div>
-<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 2.1</div>
+<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 2.2</div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -165,8 +171,8 @@ function tick(){
  if(!pa||!ea||sim.t>150){
   clearInterval(timer);sim.done=true;sfx(pa&&!ea?'win':'lose');
   if(pa&&!ea){
-   const lv0=lvl(),g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;sim.res={w:1,g,xp:30,lv:lvl()>lv0?lvl():0,it:''};if(sim.m==null){{const st=S.stage,sr=starsOf();sim.res.stars=sr;S.stars[st]=Math.max(S.stars[st]||0,sr);if(unl(st+1))S.stage=st+1}S.pend={q:1+R(2)+Math.floor(sim.L/20),g:g*2,big:0}}msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
-   if(sim.m!=null){const q=1+R(2)+Math.floor(sim.m/2);S.pend={q,g:g*3,big:1};sim.res.pick=1}
+   const lv0=lvl(),g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;sim.res={w:1,g,xp:30,lv:lvl()>lv0?lvl():0,it:''};if(sim.m==null){{const st=S.stage,sr=starsOf();sim.res.stars=sr;S.stars[st]=Math.max(S.stars[st]||0,sr);if(unl(st+1))S.stage=st+1}S.pend=mkPend(1+R(2)+Math.floor(sim.L/20),g*2,0)}msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
+   if(sim.m!=null){const q=1+R(2)+Math.floor(sim.m/2);S.pend=mkPend(q,g*3,1);sim.res.pick=1}
   if(sim.boss){const k=['a','w','h'][R(3)],q=2+Math.floor(sim.L/10);S.it[k]+=q;S.gold+=g*2;sim.res.g=g*3;sim.res.it+='<br>'+IT[k].i+' '+IT[k].n+' \u00d7'+q+' (👑 ບອສ)';msg+=' · 👑 ຊະນະບອສ!'}
   }else{S.gold+=10;S.xp+=10;sim.res={w:0,g:10,xp:10,lv:0,it:''};msg='💀 ແພ້... +10 💰 +10 XP ລອງຈັດທັບ ຫຼື ອັບເກຣດໃໝ່'}
  }
@@ -177,10 +183,15 @@ function showRes(){
  if(!sim||!sim.done||!sim.res)return;
  const r=sim.res,m=sim.m,el=document.getElementById('modal'),last=m!=null&&m<LG.length-1,nx=last?LG[m+1]:null;
  if(r.w&&S.pend&&!r.claimed){
-  const p=S.pend,L1=k=>p.big?IT[k].i+'✨ '+BI[k]+' \u00d7'+p.q:IT[k].i+' '+IT[k].n+' \u00d7'+p.q,o=[L1('a'),L1('w'),L1('h'),'💰 ເງິນ +'+p.g];
-  el.innerHTML=`<div class="mb"><div class="big">🎁</div><h2>ເລືອກຊຸດລາງວັນ</h2>${m==null?`<div class="st3">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</div>`:''}<p class="mu">${m==null?'ດ່ານ '+SL(sim.st):'League '+LG[m].n}</p>`+o.map((x,i)=>`<button class="btn${i?' g':''}" onclick="pickRw(${i})">${x}</button>`).join('')+'<p class="mu" id="cd"></p></div>';el.style.display='flex';
+  if(!S.pend.packs)Object.assign(S.pend,mkPend(S.pend.q||1,S.pend.g||50,S.pend.big));
+  el.innerHTML=`<div class="mb"><div class="big">🎁</div><h2>ເລືອກກ່ອງລາງວັນ</h2>${m==null?`<div class="st3">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</div>`:''}<p class="mu">${m==null?'ດ່ານ '+SL(sim.st):'League '+LG[m].n}</p><div class="pk">`+[0,1,2,3].map(i=>`<button class="pkb" onclick="pickRw(${i})">❓</button>`).join('')+'</div><p class="mu">ເນື້ອໃນຖືກປິດໄວ້ ຈະເປີດເຜຍຫຼັງເລືອກ</p><p class="mu" id="cd"></p></div>';el.style.display='flex';
   clearInterval(AUTO);let c=10;const t=()=>{const e=document.getElementById('cd');if(e)e.textContent='ຖ້າບໍ່ເລືອກ ລະບົບຈະສຸ່ມໃຫ້ໃນ '+c+' ວິ'};t();
   AUTO=setInterval(()=>{c--;if(c<=0){pickRw(Math.floor(Math.random()*4));return}t()},1000);return}
+ if(r.rv&&!r.seen){
+  const P=r.rv.P,i=r.rv.i;
+  el.innerHTML='<div class="mb"><div class="big">✨</div><h2>ເປີດລາງວັນ</h2><div class="pk">'+P.packs.map((pk,j)=>`<div class="pkc${j==i?' me':''}" style="animation-delay:${j*.15}s">${packLabel(P,pk).replace(' ×','<br>×')}${j==i?'<small>✔ ເຈົ້າເລືອກ</small>':''}</div>`).join('')+'</div><button class="btn" onclick="seeRv()">ຕົກລົງ</button><p class="mu" id="cd"></p></div>';el.style.display='flex';
+  clearInterval(AUTO);let c=5;const t=()=>{const e=document.getElementById('cd');if(e)e.textContent='ໄປຕໍ່ອັດຕະໂນມັດໃນ '+c+' ວິ'};t();
+  AUTO=setInterval(()=>{c--;if(c<=0){seeRv();return}t()},1000);return}
  let h=`<div class="mb"><div class="big">${r.w?'\ud83c\udfc6':'\ud83d\udc80'}</div><h2>${r.w?'\u0e8a\u0eb0\u0e99\u0eb0!':'\u0ec1\u0e9e\u0ec9'}</h2><p class="mu">${m==null?((sim.boss?'👑 ບອສ ດ່ານ ':'ດ່ານ ')+SL(sim.st)):'League '+LG[m].n}</p>${m==null&&r.w?`<div class="st3">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</div>`:''}<div class="rw">\ud83d\udcb0 +${r.g} &nbsp; \u2b50 +${r.xp} XP${r.it?'<br>'+r.it:''}${r.lv?'<br>\ud83c\udf89 \u0ec0\u0ea5\u0ec0\u0ea7\u0ea7\u0e82\u0eb6\u0ec9\u0e99\u0ec0\u0e9b\u0eb1\u0e99 Lv '+r.lv+'!':''}</div>`;
  if(r.w&&nx)h+=`<p class="mu">\u0e94\u0ec8\u0eb2\u0e99\u0e95\u0ecd\u0ec8\u0ec4\u0e9b: ${nx.n} ${lvl()>=nx.req?'\ud83d\udd13':'\ud83d\udd12 \u0e95\u0ec9\u0ead\u0e87 Lv '+nx.req}</p>`;
  const b=[];
@@ -252,8 +263,11 @@ const chOpen=c=>c<=1||st3(c-1)>=10;
 const unl=n=>{const c=Math.floor((n-1)/10)+1;return chOpen(c)&&((n-1)%10==0||(S.stars[n-1]||0)>=1)};
 function bestU(){let n=1;while(unl(n+1))n++;return n}
 function starsOf(){const P=sim.u.filter(u=>u.side=='p'),a=P.filter(u=>u.hp>0).length,q=a/Math.max(1,P.length);return q>=.8?3:q>=.5?2:1}
-function claimPack(i){const p=S.pend;if(!p)return '';let t;if(i<3){const k=['a','w','h'][i];if(p.big){S.big[k]+=p.q;t=IT[k].i+'✨ '+BI[k]+' \u00d7'+p.q}else{S.it[k]+=p.q;t=IT[k].i+' '+IT[k].n+' \u00d7'+p.q}}else{S.gold+=p.g;t='💰 +'+p.g}S.pend=null;save();return t}
-function pickRw(i){clearInterval(AUTO);const t=claimPack(i);if(sim&&sim.res){sim.res.claimed=1;sim.res.it=(sim.res.it?sim.res.it+'<br>':'')+t}showRes();render()}
+function mkPend(q,g,big){const r=()=>Math.floor(Math.random()*3)-1,ps=[['a',Math.max(1,q+r())],['w',Math.max(1,q+r())],['h',Math.max(1,q+r())],['g',g]].map(x=>({k:x[0],q:x[1]}));for(let i=3;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ps[i],ps[j]]=[ps[j],ps[i]]}return{big:big,packs:ps}}
+function packLabel(P,pk){return pk.k=='g'?'💰 ເງິນ +'+pk.q:(P.big?IT[pk.k].i+'✨ '+BI[pk.k]:IT[pk.k].i+' '+IT[pk.k].n)+' ×'+pk.q}
+function claimPack(i){const P=S.pend;if(!P)return '';if(!P.packs)Object.assign(P,mkPend(P.q||1,P.g||50,P.big));const pk=P.packs[i],t=packLabel(P,pk);if(pk.k=='g')S.gold+=pk.q;else if(P.big)S.big[pk.k]+=pk.q;else S.it[pk.k]+=pk.q;S.pend=null;save();return t}
+function pickRw(i){clearInterval(AUTO);const P=S.pend,t=claimPack(i);if(sim&&sim.res){sim.res.claimed=1;sim.res.it=(sim.res.it?sim.res.it+'<br>':'')+t;if(P&&P.packs)sim.res.rv={P:P,i:i}}showRes();render()}
+function seeRv(){clearInterval(AUTO);if(sim&&sim.res)sim.res.seen=1;showRes()}
 function toMap(){closeRes();sim=null;tab='map';render()}
 function vMap(){
  let top=1;while(chOpen(top+1))top++;
