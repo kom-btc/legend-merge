@@ -44,14 +44,15 @@ button{font-family:inherit;cursor:pointer}
 .sg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
 .stb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;font-size:16px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:8px}
 .stb small{font-size:10px;color:var(--mu)}.stb.cl{border-color:#2f855a}.stb.on{background:var(--bt);color:var(--bt2);border-color:var(--bt)}.stb.on small{color:var(--bt2)}.stb:disabled{opacity:.4}
+.st3{font-size:34px;color:#f6c445;letter-spacing:4px;margin:2px 0}
 </style></head><body>
-<h1>⚔️ Legend Merge 8v8 <small class="mu">v1.9</small></h1>
+<h1>⚔️ Legend Merge 8v8 <small class="mu">v2.0</small></h1>
 <div class="top" id="top"></div>
 <div class="tabs" id="tabs"></div>
 <div id="stage" style="display:none"><canvas id="gl"></canvas></div>
 <div id="main"></div>
 <div id="modal"></div>
-<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 1.9</div>
+<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 2.0</div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -74,7 +75,7 @@ const PAL={K:'#1b1b2f',S:'#f1c9a0',M:'#cfd6e0',D:'#7e8896',W:'#ffffff',Y:'#f6c44
 const TC=['#4a90e2','#38a169','#9f5de2','#e6a817','#e53e3e'];
 const SC={};
 function spr(t,tr,s){const k=t+tr+s;if(SC[k])return SC[k];const cv=document.createElement('canvas');cv.width=cv.height=12;const c=cv.getContext('2d');SP[t].forEach((row,y)=>{for(let x=0;x<12;x++){const ch=row[x];if(ch=='.')continue;c.fillStyle=ch=='A'?TC[tr-1]:PAL[ch];c.fillRect(s=='e'?11-x:x,y,1,1)}});return SC[k]=cv.toDataURL()}
-function load(){try{const s=JSON.parse(localStorage.getItem('lm8'));if(s){s.stage=s.stage||1;s.best=s.best||1;s.big=s.big||{a:0,w:0,h:0};return s}}catch(e){}return{stage:1,best:1,big:{a:0,w:0,h:0},gold:400,xp:0,nid:4,roster:[{id:1,type:'knight',tier:1},{id:2,type:'archer',tier:1},{id:3,type:'tank',tier:1}],place:{},up:{a:0,w:0,h:0},it:{a:0,w:0,h:0}}}
+function load(){try{const s=JSON.parse(localStorage.getItem('lm8'));if(s){s.stage=s.stage||1;s.best=s.best||1;s.big=s.big||{a:0,w:0,h:0};if(!s.stars){s.stars={};for(let i=1;i<s.best;i++)s.stars[i]=1}return s}}catch(e){}return{stage:1,best:1,stars:{},big:{a:0,w:0,h:0},gold:400,xp:0,nid:4,roster:[{id:1,type:'knight',tier:1},{id:2,type:'archer',tier:1},{id:3,type:'tank',tier:1}],place:{},up:{a:0,w:0,h:0},it:{a:0,w:0,h:0}}}
 function save(){try{localStorage.setItem('lm8',JSON.stringify(S))}catch(e){}}
 let S=load(),tab='fight',sel=null,sim=null,timer=null,msg='';
 const lvl=()=>Math.floor(S.xp/60);
@@ -107,7 +108,7 @@ function vFight(){
  return `${board()}<div class="msg">${msg}${sim&&sim.done?' · ເລືອກຕົວລະຄອນດ້ານລຸ່ມ ແລ້ວສູ້ຕໍ່':''}</div>
  <div class="card"><div class="mu">ຕົວລະຄອນທັງໝົດ: ກົດເລືອກ ແລ້ວກົດຊ່ອງສີຂຽວເພື່ອວາງ · ວາງແລ້ວ ${placed.length}/8 · ກົດຕົວທີ່ມີ ✓ ເພື່ອເອົາອອກ</div>
  ${S.roster.map(r=>{const on=placed.includes(r.id);return `<span class="chip ${sel==r.id?'sel':''}" style="${on?'opacity:.5':''}" onclick="pick(${r.id})"><img class="sp2" src="${spr(r.type,r.tier,'p')}">★${r.tier}${on?' ✓':''}</span>`}).join('')}</div>
- <div class="row"><span>🏁 ດ່ານ <b>${SL(S.stage)}</b> <span class="mu">(ສູງສຸດ ${SL(S.best)})</span></span><button class="btn g" ${busy?'disabled':''} onclick="tab='map';render()">📋 ເລືອກດ່ານ</button></div>
+ <div class="row"><span>🏁 ດ່ານ <b>${SL(S.stage)}</b> <span class="mu">(ສູງສຸດ ${SL(bestU())})</span></span><button class="btn g" ${busy?'disabled':''} onclick="tab='map';render()">📋 ເລືອກດ່ານ</button></div>
  <div class="row"><button class="btn g" ${busy?'disabled':''} onclick="auto()">ຈັດອັດຕະໂນມັດ</button><button class="btn g" ${busy?'disabled':''} onclick="clr()">ລ້າງ</button>
  <button class="btn" ${busy?'disabled':''} onclick="start(null)">⚔️ ສູ້ ${S.stage%10==0?'👑 ບອສ':'bot'} ດ່ານ ${SL(S.stage)}</button></div>`;
 }
@@ -164,8 +165,8 @@ function tick(){
  if(!pa||!ea||sim.t>150){
   clearInterval(timer);sim.done=true;sfx(pa&&!ea?'win':'lose');
   if(pa&&!ea){
-   const lv0=lvl(),g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;sim.res={w:1,g,xp:30,lv:lvl()>lv0?lvl():0,it:''};if(sim.m==null){S.best=Math.max(S.best,S.stage+1);S.stage=Math.min(S.stage+1,S.best);const k2=['a','w','h'][R(3)],q2=1+R(2)+Math.floor(sim.L/20);S.it[k2]+=q2;sim.res.it=IT[k2].i+' '+IT[k2].n+' \u00d7'+q2}msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
-   if(sim.m!=null){const k=['a','w','h'][R(3)],q=1+R(2)+Math.floor(sim.m/2);S.big[k]+=q;sim.res.it=IT[k].i+'✨ '+BI[k]+' \u00d7'+q+' (ໃຫຍ່)';msg+=` · ໄດ້ ${IT[k].i}✨${BI[k]} ×${q}`}
+   const lv0=lvl(),g=40+Math.floor(sim.L*2);S.gold+=g;S.xp+=30;sim.res={w:1,g,xp:30,lv:lvl()>lv0?lvl():0,it:''};if(sim.m==null){{const st=S.stage,sr=starsOf();sim.res.stars=sr;S.stars[st]=Math.max(S.stars[st]||0,sr);if(unl(st+1))S.stage=st+1}const k2=['a','w','h'][R(3)],q2=1+R(2)+Math.floor(sim.L/20);S.it[k2]+=q2;sim.res.it=IT[k2].i+' '+IT[k2].n+' \u00d7'+q2}msg=`🏆 ຊະນະ! +${g} 💰 +30 XP`;
+   if(sim.m!=null){const q=1+R(2)+Math.floor(sim.m/2);S.pend={q,g:g*3};sim.res.pick=1}
   if(sim.boss){const k=['a','w','h'][R(3)],q=2+Math.floor(sim.L/10);S.it[k]+=q;S.gold+=g*2;sim.res.g=g*3;sim.res.it+='<br>'+IT[k].i+' '+IT[k].n+' \u00d7'+q+' (👑 ບອສ)';msg+=' · 👑 ຊະນະບອສ!'}
   }else{S.gold+=10;S.xp+=10;sim.res={w:0,g:10,xp:10,lv:0,it:''};msg='💀 ແພ້... +10 💰 +10 XP ລອງຈັດທັບ ຫຼື ອັບເກຣດໃໝ່'}
  }
@@ -175,17 +176,22 @@ function tick(){
 function showRes(){
  if(!sim||!sim.done||!sim.res)return;
  const r=sim.res,m=sim.m,el=document.getElementById('modal'),last=m!=null&&m<LG.length-1,nx=last?LG[m+1]:null;
- let h=`<div class="mb"><div class="big">${r.w?'\ud83c\udfc6':'\ud83d\udc80'}</div><h2>${r.w?'\u0e8a\u0eb0\u0e99\u0eb0!':'\u0ec1\u0e9e\u0ec9'}</h2><p class="mu">${m==null?((sim.boss?'👑 ບອສ ດ່ານ ':'ດ່ານ ')+SL(sim.st)):'League '+LG[m].n}</p><div class="rw">\ud83d\udcb0 +${r.g} &nbsp; \u2b50 +${r.xp} XP${r.it?'<br>'+r.it:''}${r.lv?'<br>\ud83c\udf89 \u0ec0\u0ea5\u0ec0\u0ea7\u0ea7\u0e82\u0eb6\u0ec9\u0e99\u0ec0\u0e9b\u0eb1\u0e99 Lv '+r.lv+'!':''}</div>`;
+ if(m!=null&&r.w&&S.pend&&!r.claimed){
+  const p=S.pend,o=[IT.a.i+'\u2728 '+BI.a+' \u00d7'+p.q,IT.w.i+'\u2728 '+BI.w+' \u00d7'+p.q,IT.h.i+'\u2728 '+BI.h+' \u00d7'+p.q,'\U0001F4B0 ເງິນ +'+p.g];
+  el.innerHTML=`<div class="mb"><div class="big">🎁</div><h2>ເລືອກຊຸດລາງວັນ</h2><p class="mu">League ${LG[m].n}</p>`+o.map((x,i)=>`<button class="btn${i?' g':''}" onclick="pickRw(${i})">${x}</button>`).join('')+'<p class="mu" id="cd"></p></div>';el.style.display='flex';
+  clearInterval(AUTO);let c=10;const t=()=>{const e=document.getElementById('cd');if(e)e.textContent='ຖ້າບໍ່ເລືອກ ລະບົບຈະສຸ່ມໃຫ້ໃນ '+c+' ວິ'};t();
+  AUTO=setInterval(()=>{c--;if(c<=0){pickRw(Math.floor(Math.random()*4));return}t()},1000);return}
+ let h=`<div class="mb"><div class="big">${r.w?'\ud83c\udfc6':'\ud83d\udc80'}</div><h2>${r.w?'\u0e8a\u0eb0\u0e99\u0eb0!':'\u0ec1\u0e9e\u0ec9'}</h2><p class="mu">${m==null?((sim.boss?'👑 ບອສ ດ່ານ ':'ດ່ານ ')+SL(sim.st)):'League '+LG[m].n}</p>${m==null&&r.w?`<div class="st3">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</div>`:''}<div class="rw">\ud83d\udcb0 +${r.g} &nbsp; \u2b50 +${r.xp} XP${r.it?'<br>'+r.it:''}${r.lv?'<br>\ud83c\udf89 \u0ec0\u0ea5\u0ec0\u0ea7\u0ea7\u0e82\u0eb6\u0ec9\u0e99\u0ec0\u0e9b\u0eb1\u0e99 Lv '+r.lv+'!':''}</div>`;
  if(r.w&&nx)h+=`<p class="mu">\u0e94\u0ec8\u0eb2\u0e99\u0e95\u0ecd\u0ec8\u0ec4\u0e9b: ${nx.n} ${lvl()>=nx.req?'\ud83d\udd13':'\ud83d\udd12 \u0e95\u0ec9\u0ead\u0e87 Lv '+nx.req}</p>`;
  const b=[];
- if(m==null){if(r.w){b.push(['➡️ ສູ້ດ່ານ '+SL(S.stage),'again()'],['🔁 ຫຼິ້ນດ່ານ '+SL(sim.st)+' ອີກ','repS()'])}else b.push(['🔁 ລອງດ່ານ '+SL(sim.st)+' ອີກ','again()'])}
+ if(m==null){if(r.w){if(S.stage!=sim.st)b.push(['➡️ ສູ້ດ່ານ '+SL(S.stage),'again()']);else h+='<p class="mu">ຕ້ອງໄດ້ 3⭐ ທຸກດ່ານໃນບົດ ເພື່ອເປີດບົດຕໍ່ໄປ</p>';b.push(['🔁 ຫຼິ້ນດ່ານ '+SL(sim.st)+' ອີກ','repS()'],['📋 ເລືອກດ່ານ','toMap()'])}else b.push(['🔁 ລອງດ່ານ '+SL(sim.st)+' ອີກ','again()'])}
  else{b.push(['\ud83d\udd01 \u0eab\u0ebc\u0eb4\u0ec9\u0e99\u0e94\u0ec8\u0eb2\u0e99\u0ec0\u0e81\u0ebb\u0ec8\u0eb2\u0ead\u0eb5\u0e81 ('+LG[m].n+')','again()']);
   if(r.w&&nx&&lvl()>=nx.req)b.push(['\u27a1\ufe0f \u0e94\u0ec8\u0eb2\u0e99\u0e95\u0ecd\u0ec8\u0ec4\u0e9b ('+nx.n+')','nextS()']);
   b.push(['\ud83c\udfc6 \u0ec0\u0ea5\u0eb7\u0ead\u0e81\u0e94\u0ec8\u0eb2\u0e99\u0ec3\u0edd\u0ec8','newStage()'])}
  b.push(['\u0e9b\u0eb4\u0e94','closeRes()']);
  el.innerHTML=h+b.map((x,i)=>`<button class="btn${i&&i<b.length-1?' g':''}${i==b.length-1?' g':''}" onclick="${x[1]}">${x[0]}</button>`).join('')+'<p class="mu" id="cd"></p></div>';el.style.display='flex';
  clearInterval(AUTO);
- if(m==null&&r.w){let c=10;const t=()=>{const e=document.getElementById('cd');if(e)e.textContent='ຈະສູ້ດ່ານຕໍ່ໄປອັດຕະໂນມັດໃນ '+c+' ວິ'};t();
+ if(m==null&&r.w&&S.stage!=sim.st){let c=10;const t=()=>{const e=document.getElementById('cd');if(e)e.textContent='ຈະສູ້ດ່ານຕໍ່ໄປອັດຕະໂນມັດໃນ '+c+' ວິ'};t();
   AUTO=setInterval(()=>{c--;if(c<=0){if(sim)again();else closeRes();return}t()},1000)}
 }
 let AUTO=null;
@@ -241,13 +247,22 @@ function upg(k){const c=3+2*S.up[k];if(S.it[k]+5*S.big[k]<c)return;const u=Math.
 const SL=n=>(Math.floor((n-1)/10)+1)+'-'+((n-1)%10+1);
 const CHN=['ປ່າ','ຖ້ຳ','ທະເລຊາຍ','ພູໄຟ','ນ້ຳແຂງ','ເມືອງຮ້າງ','ເທິງເມກ','ປາສາດມືດ'];
 let mapCh=0;
+const st3=c=>{let n=0;for(let i=1;i<=10;i++)if((S.stars[(c-1)*10+i]||0)>=3)n++;return n};
+const chOpen=c=>c<=1||st3(c-1)>=10;
+const unl=n=>{const c=Math.floor((n-1)/10)+1;return chOpen(c)&&((n-1)%10==0||(S.stars[n-1]||0)>=1)};
+function bestU(){let n=1;while(unl(n+1))n++;return n}
+function starsOf(){const P=sim.u.filter(u=>u.side=='p'),a=P.filter(u=>u.hp>0).length,q=a/Math.max(1,P.length);return q>=.8?3:q>=.5?2:1}
+function claimPack(i){const p=S.pend;if(!p)return '';let t;if(i<3){const k=['a','w','h'][i];S.big[k]+=p.q;t=IT[k].i+'✨ '+BI[k]+' \u00d7'+p.q}else{S.gold+=p.g;t='💰 +'+p.g}S.pend=null;save();return t}
+function pickRw(i){clearInterval(AUTO);const t=claimPack(i);if(sim&&sim.res){sim.res.claimed=1;sim.res.it=t}showRes();render()}
+function toMap(){closeRes();sim=null;tab='map';render()}
 function vMap(){
- const cur=Math.floor((S.best-1)/10)+1,sel=mapCh||Math.floor((S.stage-1)/10)+1;
- let h='<div class="card"><b>📋 ເລືອກດ່ານ</b><div class="mu">ແຕະບົດເພື່ອເປີດ ແລ້ວແຕະດ່ານຍ່ອຍ · ດ່ານທີ 10 ຂອງແຕ່ລະບົດແມ່ນບອສ 👑</div></div>';
- for(let c=1;c<=cur+1;c++){
-  const a=(c-1)*10+1,open=c<=cur,done=Math.max(0,Math.min(10,S.best-a)),nm=CHN[(c-1)%8]+(c>8?' '+Math.ceil(c/8):'');
-  h+=`<div class="card"><div class="row" style="cursor:pointer" ${open?`onclick="mapCh=${c};render()"`:''}><b>${open?'📖':'🔒'} ບົດ ${c} · ${nm}</b><span class="mu">${open?'ຜ່ານ '+done+'/10 '+(sel==c?'▲':'▼'):'ຜ່ານບົດກ່ອນໜ້າກ່ອນ'}</span></div>`;
-  if(open&&sel==c){h+='<div class="sg">';for(let i=1;i<=10;i++){const st=a+i-1,ok=st<=S.best,cl=st<S.best;h+=`<button class="stb${st==S.stage?' on':''}${cl?' cl':''}" ${ok?'':'disabled'} onclick="pickSt(${st})">${ok?(i==10?'👑':i):'🔒'}<small>${c}-${i}</small></button>`}h+='</div>'}
+ let top=1;while(chOpen(top+1))top++;
+ const sel=mapCh||Math.floor((S.stage-1)/10)+1;
+ let h='<div class="card"><b>📋 ເລືອກດ່ານ</b><div class="mu">ຕ້ອງໄດ້ 3⭐ ຄົບທຸກດ່ານຍ່ອຍໃນບົດ ຈຶ່ງເປີດບົດຕໍ່ໄປ · 3⭐ = ລອດ ≥80% · 2⭐ = ≥50% · ດ່ານທີ 10 = ບອສ 👑</div></div>';
+ for(let c=1;c<=top+1;c++){
+  const a=(c-1)*10+1,open=c<=top,nm=CHN[(c-1)%8]+(c>8?' '+Math.ceil(c/8):''),tot=Array.from({length:10},(_,i)=>S.stars[a+i]||0).reduce((x,y)=>x+y,0);
+  h+=`<div class="card"><div class="row" style="cursor:pointer" ${open?`onclick="mapCh=${c};render()"`:''}><b>${open?'📖':'🔒'} ບົດ ${c} · ${nm}</b><span class="mu">${open?'⭐ '+tot+'/30 '+(sel==c?'▲':'▼'):'ໄດ້ 3⭐ ຄົບທຸກດ່ານໃນບົດກ່ອນໜ້າ'}</span></div>`;
+  if(open&&sel==c){h+='<div class="sg">';for(let i=1;i<=10;i++){const st=a+i-1,ok=unl(st),n=S.stars[st]||0;h+=`<button class="stb${st==S.stage?' on':''}${n>=3?' cl':''}" ${ok?'':'disabled'} onclick="pickSt(${st})">${ok?(i==10?'👑':i):'🔒'}<small>${'★'.repeat(n)}${'☆'.repeat(3-n)}</small></button>`}h+='</div>'}
   h+='</div>'}
  return h;
 }
@@ -365,5 +380,7 @@ addEventListener('resize',()=>{if(GL){GL.w=0;stageUpdate()}});
 initGL();
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')==0){const had=navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!window.__rl){window.__rl=1;location.reload()}});navigator.serviceWorker.register('sw.js').catch(()=>{})}
 
+if(!unl(S.stage))S.stage=bestU();
+if(S.pend)claimPack(Math.floor(Math.random()*4));
 render();
 </script></body></html>
