@@ -56,13 +56,13 @@ button{font-family:inherit;cursor:pointer}
 .smr .bar{flex:1;height:8px;background:var(--bd);border-radius:4px;overflow:hidden}.smr .bar i{display:block;height:100%;background:var(--bt)}
 .smr b{font-weight:400;min-width:60px;text-align:right}.chip small{color:var(--mu)}
 </style></head><body>
-<h1>⚔️ Legend Merge 8v8 <small class="mu">v3.0</small></h1>
+<h1>⚔️ Legend Merge 8v8 <small class="mu">v3.1</small></h1>
 <div class="top" id="top"></div>
 <div class="tabs" id="tabs"></div>
 <div id="stage" style="display:none"><canvas id="gl"></canvas></div>
 <div id="main"></div>
 <div id="modal"></div>
-<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 3.0</div>
+<div class="mu" style="text-align:center;margin:12px 0">Legend Merge · version 3.1</div>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -98,13 +98,13 @@ function load(){
  if(!s)s={stage:1,best:1,stars:{},big:{a:0,w:0,h:0},gold:400,xp:0,nid:4,roster:[{id:1,type:'knight',tier:1,xp:0},{id:2,type:'archer',tier:1,xp:0},{id:3,type:'tank',tier:1,xp:0}],place:{},up:{a:0,w:0,h:0},it:{a:0,w:0,h:0}};
  s.stage=s.stage||1;s.best=s.best||1;s.big=s.big||{a:0,w:0,h:0};
  if(!s.stars){s.stars={};for(let i=1;i<s.best;i++)s.stars[i]=1}
- s.tw=s.tw||1;s.twBest=s.twBest||0;s.place=s.place||{};s.ach=s.ach||{};s.dq=s.dq||{};
+ s.tw=s.tw||1;s.twBest=s.twBest||0;s.place=s.place||{};s.um=s.um||{};s.ach=s.ach||{};s.dq=s.dq||{};
  s.stt=Object.assign({wins:0,bosses:0,merges:0,lg:0,crit:0,maxT:1},s.stt||{});
  s.roster.forEach(r=>{s.stt.maxT=Math.max(s.stt.maxT,r.tier)});
  return s;
 }
 function save(){try{localStorage.setItem('lm8',JSON.stringify(S))}catch(e){}}
-let S=load(),tab='fight',sel=null,sim=null,timer=null,msg='',spd=1,autoUlt=false,AUTO=null;
+let S=load(),tab='fight',sel=null,sim=null,timer=null,msg='',spd=1,AUTO=null;
 const lvl=()=>Math.floor(S.xp/60);
 const ulv=r=>Math.min(10,1+Math.floor((r.xp||0)/40));
 const R=n=>Math.floor(Math.random()*n);
@@ -163,7 +163,7 @@ function start(m){ac();
  const ks=Object.keys(T),boss=tw?S.tw%5==0:(m==null&&S.stage%10==0);
  for(const c of cs)u.push(mk('e',ks[R(ks.length)],Math.max(1,et-R(2)),c%8,Math.floor(c/8),sc));
  if(boss){const i=u.findIndex(o=>o.side=='e'&&o.x==3&&o.y==2);if(i>=0)u.splice(i,1);const b=mk('e',ks[R(ks.length)],Math.min(5,et+2),3,2,sc);b.hp=b.max=b.hp*8;b.atk*=2.2;b.df=.6;b.boss=1;u.push(b)}
- sim={u,t:0,done:false,m,L,boss,st:S.stage,tw:tw?S.tw:0,fx:[],sh:{p:0,e:0},auto:autoUlt,syn:act};
+ sim={u,t:0,done:false,m,L,boss,st:S.stage,tw:tw?S.tw:0,fx:[],sh:{p:0,e:0},auto:!!S.autoAll,syn:act};
  msg=tw?'ຫໍຄອຍ ຊັ້ນ '+S.tw:(m==null?'ການຕໍ່ສູ້ເລີ່ມແລ້ວ!':'League '+LG[m].n+' ເລີ່ມແລ້ວ!');
  tab='fight';render();bgmStart();
  clearInterval(timer);timer=setInterval(tick,350/spd);
@@ -199,7 +199,7 @@ function tick(q){
  for(const u of sim.u){
   if(u.hp<=0)continue;
   const E=alive(u.side=='p'?'e':'p');if(!E.length)break;
-  if(u.rage>=100&&(u.side=='e'||sim.auto)){ult(u);continue}
+  if(u.rage>=100&&(u.side=='e'||sim.auto||S.um[u.type]=='a')){ult(u);continue}
   const A=alive(u.side);
   let t=E[0],bd=99;for(const e of E){const d=dist(u,e);if(d<bd){bd=d;t=e}}
   const fr=(x,y)=>x>=0&&x<8&&y>=0&&y<8&&!sim.u.some(o=>o.hp>0&&o.x==x&&o.y==y);
@@ -245,7 +245,10 @@ function endBattle(win){
  vib(win?[60,40,60]:200);save();
 }
 function setSpd(){spd=spd==1?2:(spd==2?4:1);if(sim&&!sim.done){clearInterval(timer);timer=setInterval(tick,350/spd)}render()}
-function togAuto(){autoUlt=!autoUlt;if(sim)sim.auto=autoUlt;render()}
+function togAuto(){S.autoAll=!S.autoAll;if(sim)sim.auto=S.autoAll;render()}
+function setUm(t,v){S.um[t]=v;render()}
+function allUm(v){Object.keys(T).forEach(t=>S.um[t]=v);S.autoAll=false;if(sim)sim.auto=false;render()}
+function castAt(i){if(!sim||sim.done)return;const x=i%8,y=Math.floor(i/8),u=sim.u.find(o=>o.hp>0&&o.side=='p'&&o.x==x&&o.y==y);if(u&&u.rage>=100){sim.fx=[];ult(u);playFx();sim.fx=[];render()}}
 function castAll(){if(!sim||sim.done)return;sim.fx=[];sim.u.filter(u=>u.hp>0&&u.side=='p'&&u.rage>=100).forEach(ult);playFx();sim.fx=[];render()}
 function skipB(){if(!sim||sim.done)return;clearInterval(timer);sim.auto=true;let g=0;while(!sim.done&&g++<400)tick(true)}
 const TH=[
@@ -326,17 +329,17 @@ function vFight(){
  const placed=Object.values(S.place),busy=sim&&!sim.done;
  const types=placed.map(id=>uid(id)).filter(Boolean).map(r=>r.type);
  const ready=busy?sim.u.filter(u=>u.hp>0&&u.side=='p'&&u.rage>=100).length:0;
- const ctl=busy?`<div class="row"><button class="btn g" onclick="setSpd()">⏩ ×${spd}</button><button class="btn g" onclick="skipB()">⏭ ຂ້າມ</button><button class="btn ${sim.auto?'':'g'}" onclick="togAuto()">AUTO ${sim.auto?'ON':'OFF'}</button><button class="btn" ${ready?'':'disabled'} onclick="castAll()">⚡ ພະລັງ (${ready})</button></div>`:'';
+ const ctl=busy?`<div class="row"><button class="btn g" onclick="setSpd()">⏩ ×${spd}</button><button class="btn g" onclick="skipB()">⏭ ຂ້າມ</button><button class="btn ${S.autoAll?'':'g'}" onclick="togAuto()">AUTO ${S.autoAll?'ON':'OFF'}</button><button class="btn" ${ready?'':'disabled'} onclick="castAll()">⚡ ພະລັງ (${ready})</button></div>`:'';
  return `<div class="msg">${msg}${sim&&sim.done?' · ເລືອກຕົວລະຄອນດ້ານລຸ່ມ ແລ້ວສູ້ຕໍ່':''}</div>${ctl}
  <div class="card"><div class="mu">ກົດເລືອກຕົວລະຄອນ ແລ້ວກົດຊ່ອງສີຂຽວເພື່ອວາງ · ວາງແລ້ວ ${placed.length}/8 · ກົດຕົວທີ່ມີ ✓ ເພື່ອເອົາອອກ · ກົດຄ້າງເທິງສະໜາມເພື່ອເບິ່ງຂໍ້ມູນ</div>
  ${S.roster.map(r=>{const on=placed.includes(r.id);return `<span class="chip ${sel==r.id?'sel':''}" style="${on?'opacity:.5':''}" onclick="pick(${r.id})"><img class="sp2" src="${spr(r.type,r.tier,'p')}">★${r.tier} <small>Lv${ulv(r)}</small>${on?' ✓':''}</span>`}).join('')}
  ${synText(types)}</div>
- <div class="row"><span>🏁 ດ່ານ <b>${SL(S.stage)}</b> <span class="mu">${CHN[Math.floor((S.stage-1)/10)%8]}</span> <span class="mu">(ສູງສຸດ ${SL(bestU())})</span></span><button class="btn g" ${busy?'disabled':''} onclick="tab='map';render()">📋 ເລືອກດ່ານ</button></div>
+ <div class="row"><span>🏁 ດ່ານ <b>${SL(S.stage)}</b> <span class="mu">${CHN[Math.floor((S.stage-1)/10)%8]}</span> <span class="mu">(ສູງສຸດ ${SL(bestU())})</span></span><button class="btn g" ${busy?'disabled':''} onclick="tab='map';render()">📋 ເລືອກດ່ານ</button><button class="btn g" onclick="tab='roster';render()">⚡ ຕັ້ງຄ່າພະລັງ</button></div>
  <div class="row"><button class="btn g" ${busy?'disabled':''} onclick="auto()">ຈັດອັດຕະໂນມັດ</button><button class="btn g" ${busy?'disabled':''} onclick="clr()">ລ້າງ</button>
  <button class="btn" ${busy?'disabled':''} onclick="start(null)">⚔️ ສູ້ ${S.stage%10==0?'👑 ບອສ':'bot'} ດ່ານ ${SL(S.stage)}</button></div>`;
 }
 function clickCell(i){
- if(sim&&!sim.done)return;
+ if(sim&&!sim.done){castAt(i);return}
  if(sim&&sim.done){sim=null}
  if(S.place[i]){delete S.place[i]}
  else if(i>=32&&sel!=null&&Object.keys(S.place).length<8&&!Object.values(S.place).includes(sel)){S.place[i]=sel;sel=null}
@@ -407,11 +410,14 @@ function nextS(){closeRes();const m=sim.m+1;sim=null;start(m)}
 function repS(){closeRes();const st=sim.st;sim=null;S.stage=st;start(null)}
 function newStage(){closeRes();sim=null;tab='lg';render()}
 // ===== roster / shop / upgrade =====
+function modeCard(){
+ return `<div class="card"><b>⚡ ການໃຊ້ພະລັງພິເສດ</b><div class="mu">🤖 Auto = ຕົວລະຄອນປ່ອຍເອງເມື່ອພະລັງເຕັມ · ✋ ກຳນົດເອງ = ກົດປຸ່ມ ⚡ ຫຼື ແຕະຕົວລະຄອນທີ່ມີພະລັງເຕັມໃນສະໜາມ</div><div class="row"><button class="btn g" onclick="allUm('a')">ທັງໝົດ Auto</button><button class="btn g" onclick="allUm('m')">ທັງໝົດ ກຳນົດເອງ</button></div>`+Object.keys(T).map(t=>{const a=S.um[t]=='a';return `<div class="row"><span><img class="sp2" src="${spr(t,1,'p')}"> ${T[t].n}<br><span class="mu">${UL[t]}</span></span><button class="btn ${a?'':'g'}" onclick="setUm('${t}','${a?'m':'a'}')">${a?'🤖 Auto':'✋ ກຳນົດເອງ'}</button></div>`}).join('')+`</div>`;
+}
 function vRoster(){
  const g={};S.roster.forEach(r=>{const k=r.type+'|'+r.tier;(g[k]=g[k]||[]).push(r)});
  const h=Object.keys(g).sort().map(k=>{const[t,tr]=k.split('|'),a=g[k],n=a.length;
   return `<div class="row"><span><img class="sp2" src="${spr(t,tr,'p')}"> ${T[t].n} ★${tr} ×${n}<br><span class="mu">Lv: ${a.map(ulv).join(', ')}</span></span>${n>=2&&+tr<5?`<button class="btn" onclick="merge('${t}',${tr})">ລວມ → ★${+tr+1}</button>`:`<span class="mu">${+tr>=5?'ສູງສຸດ':'ຕ້ອງ 2 ໂຕ'}</span>`}</div>`}).join('');
- return `<div class="card"><b>ທັບຂອງຂ້ອຍ (${S.roster.length})</b>${h}<div class="mu">ລວມ 2 ໂຕທີ່ຄືກັນ ແລະ ລະດັບດຽວກັນ ເປັນລະດັບໃໝ່ (ເລືອດ/ໂຈມຕີ ×1.8) · ຕົວທີ່ຕໍ່ສູ້ຫຼາຍໄດ້ XP ແລະ ເລເວວ ເພີ່ມ +4% ຕໍ່ເລເວວ (ສູງສຸດ Lv 10)</div></div>`;
+ return modeCard()+`<div class="card"><b>ທັບຂອງຂ້ອຍ (${S.roster.length})</b>${h}<div class="mu">ລວມ 2 ໂຕທີ່ຄືກັນ ແລະ ລະດັບດຽວກັນ ເປັນລະດັບໃໝ່ (ເລືອດ/ໂຈມຕີ ×1.8) · ຕົວທີ່ຕໍ່ສູ້ຫຼາຍໄດ້ XP ແລະ ເລເວວ ເພີ່ມ +4% ຕໍ່ເລເວວ (ສູງສຸດ Lv 10)</div></div>`;
 }
 function merge(t,tr){
  if(tr>=5)return;
@@ -451,7 +457,7 @@ function impSave(){
 }
 // ===== tutorial =====
 const TUT=[['🎮','ວາງຕົວລະຄອນ','ກົດຕົວລະຄອນໃນລາຍຊື່ ແລ້ວກົດຊ່ອງສີຂຽວເທິງສະໜາມ ຫຼື ກົດ "ຈັດອັດຕະໂນມັດ". ກົດຄ້າງທີ່ຕົວລະຄອນເພື່ອເບິ່ງຂໍ້ມູນ.'],
- ['⚔️','ຕໍ່ສູ້','ກົດ "ສູ້" ແລ້ວເບິ່ງການຕໍ່ສູ້ອັດຕະໂນມັດ. ແຖບສີເຫຼືອງຄືພະລັງ ເມື່ອເຕັມກົດ ⚡ ເພື່ອປ່ອຍທ່າໄມ້ຕາຍ. ເລັ່ງ ×2/×4 ຫຼື ຂ້າມໄດ້.'],
+ ['⚔️','ຕໍ່ສູ້','ກົດ "ສູ້" ແລ້ວເບິ່ງການຕໍ່ສູ້ອັດຕະໂນມັດ. ແຖບສີເຫຼືອງຄືພະລັງ ເມື່ອເຕັມກົດ ⚡ ເພື່ອປ່ອຍທ່າໄມ້ຕາຍ. ເລັ່ງ ×2/×4 ຫຼື ຂ້າມໄດ້. ຕັ້ງໂໝດພະລັງ Auto/ກຳນົດເອງ ໄດ້ໃນແຖບ "ທັບ".'],
  ['🔗','ລວມຮ່າງ ແລະ ໂບນັດ','ລວມ 2 ໂຕທີ່ຄືກັນໃນແຖບ "ທັບ" ໃຫ້ແຂງຂຶ້ນ. ວາງຕົວປະເພດດຽວກັນຫຼາຍໂຕ ຈະໄດ້ໂບນັດກຸ່ມ.'],
  ['⭐','ດາວ ແລະ ບົດ','ໄດ້ 3⭐ ຄົບທຸກດ່ານໃນບົດ ຈຶ່ງເປີດບົດໃໝ່. ຊະນະແລ້ວເລືອກກ່ອງລາງວັນ. ຢ່າລືມສຳຮອງ save ໃນແຖບ "ພາລະກິດ".']];
 function tut(n){
